@@ -1,0 +1,57 @@
+.sidebar {
+  min-height: 100vh;
+  width: 280px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 100;
+}
+
+.content {
+  margin-left: 280px;
+  min-height: calc(100vh - 56px);
+}
+
+.sidebar-header {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.list-group-item:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  transform: translateX(5px);
+  transition: all 0.3s ease;
+}
+
+.active-sidebar {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  border-left: 4px solid #fff !important;
+}
+
+.navbar {
+  margin-left: 280px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 280px;
+  z-index: 99;
+}
+
+.content {
+  margin-top: 56px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .sidebar {
+    margin-left: -280px;
+  }
+  
+  .content {
+    margin-left: 0;
+  }
+  
+  .navbar {
+    margin-left: 0;
+    left: 0;
+  }
+}

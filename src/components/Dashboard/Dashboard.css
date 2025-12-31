@@ -1,0 +1,57 @@
+.dashboard {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border-radius: 0.5rem;
+}
+
+.card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  font-weight: 600;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.bg-primary .card-body i {
+  opacity: 0.8;
+}
+
+.bg-success .card-body i {
+  opacity: 0.8;
+}
+
+.bg-warning .card-body i {
+  opacity: 0.8;
+}
+
+.bg-danger .card-body i {
+  opacity: 0.8;
+}
+
+.table-responsive {
+  border-radius: 0.375rem;
+}
+
+.table th {
+  border-top: none;
+  font-weight: 600;
+  color: #495057;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
