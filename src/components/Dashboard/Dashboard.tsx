@@ -74,7 +74,8 @@ const Dashboard: React.FC = () => {
       setGeneratingReport(true);
       
       // Obtener datos detallados del backend
-      const response = await fetch(`http://localhost:3000/api/dashboard/detailed-report?start=${selectedDateRange.start}&end=${selectedDateRange.end}`);
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+      const response = await fetch(`${API_BASE_URL}/dashboard/detailed-report?start=${selectedDateRange.start}&end=${selectedDateRange.end}`);
       const reportData = await response.json();
 
       // Crear documento PDF
