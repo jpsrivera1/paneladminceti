@@ -85,8 +85,10 @@ const Dashboard: React.FC = () => {
   }, [selectedDateRange]);
 
   useEffect(() => {
+    // Solo cargar datos al montar el componente
     fetchDashboardData();
-  }, [fetchDashboardData]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const generatePDFReport = async () => {
     try {
