@@ -33,10 +33,19 @@ const UniformReports: React.FC = () => {
   const [uniformPayments, setUniformPayments] = useState<UniformPayment[]>([]);
   const [stats, setStats] = useState<UniformStats | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Obtener la fecha actual de Guatemala (GMT-6)
+  const getGuatemalaDate = () => {
+    const now = new Date();
+    return new Date(now.toLocaleString('en-US', { timeZone: 'America/Guatemala' }));
+  };
+  
+  const today = getGuatemalaDate().toISOString().split('T')[0];
+  
   const [filters, setFilters] = useState<Filters>({
     status: 'all',
-    dateFrom: '',
-    dateTo: '',
+    dateFrom: today,
+    dateTo: today,
     uniformType: 'all'
   });
 

@@ -40,24 +40,43 @@ interface DashboardData {
   incomeByPaymentMethod: Array<{metodo_pago: string, total_ingresos: number}>;
   monthlyIncome: number;
   dailyIncome: number;
+  rangeIncome: number; // Nueva propiedad para ingresos del rango seleccionado
+  currentMonthIncome: number; // Nueva propiedad para ingresos del mes actual completo
 }
 
 const Dashboard: React.FC = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [generatingReport, setGeneratingReport] = useState(false);
+  
+  // Obtener la fecha actual y la fecha de ayer en Guatemala (GMT-6)
+  const getGuatemalaDate = () => {
+    const now = new Date();
+    return new Date(now.toLocaleString('en-US', { timeZone: 'America/Guatemala' }));
+  };
+  
+  const today = getGuatemalaDate();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const todayStr = today.toISOString().split('T')[0];
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+  
   const [selectedDateRange, setSelectedDateRange] = useState({
-    start: '2025-01-01',
-    end: '2025-01-31'
+    start: yesterdayStr,  // Día anterior
+    end: todayStr         // Día actual
   });
+  
+  const [useSingleDate, setUseSingleDate] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, []); // Solo carga inicial
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      console.log('Cargando datos con rango:', selectedDateRange); // Debug
       const dashboardData = await apiService.getDashboardData(selectedDateRange);
       setData(dashboardData);
     } catch (error) {
@@ -74,7 +93,7 @@ const Dashboard: React.FC = () => {
       setGeneratingReport(true);
       
       // Obtener datos detallados del backend
-      const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
+      const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://backgeneralsistemaceti.onrender.com/api';
       const response = await fetch(`${API_BASE_URL}/dashboard/detailed-report?start=${selectedDateRange.start}&end=${selectedDateRange.end}`);
       const reportData = await response.json();
 
@@ -326,25 +345,56 @@ const Dashboard: React.FC = () => {
             </div>
             <div className="card-body">
               <div className="row">
+                <div className="col-md-12 mb-3">
+                  <div className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id="singleDateCheck"
+                      checked={useSingleDate}
+                      onChange={(e) => {
+                        setUseSingleDate(e.target.checked);
+                        if (e.target.checked) {
+                          // Si se activa, igualar ambas fechas
+                          setSelectedDateRange({...selectedDateRange, end: selectedDateRange.start});
+                        }
+                      }}
+                    />
+                    <label className="form-check-label" htmlFor="singleDateCheck">
+                      Buscar por una sola fecha
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="row">
                 <div className="col-md-4">
-                  <label className="form-label">Fecha Inicio:</label>
+                  <label className="form-label">{useSingleDate ? 'Fecha:' : 'Fecha Inicio:'}</label>
                   <input
                     type="date"
                     className="form-control"
                     value={selectedDateRange.start}
-                    onChange={(e) => setSelectedDateRange({...selectedDateRange, start: e.target.value})}
+                    onChange={(e) => {
+                      if (useSingleDate) {
+                        // Si está activado el modo una sola fecha, actualizar ambas
+                        setSelectedDateRange({start: e.target.value, end: e.target.value});
+                      } else {
+                        setSelectedDateRange({...selectedDateRange, start: e.target.value});
+                      }
+                    }}
                   />
                 </div>
-                <div className="col-md-4">
-                  <label className="form-label">Fecha Fin:</label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    value={selectedDateRange.end}
-                    onChange={(e) => setSelectedDateRange({...selectedDateRange, end: e.target.value})}
-                  />
-                </div>
-                <div className="col-md-4 d-flex align-items-end">
+                {!useSingleDate && (
+                  <div className="col-md-4">
+                    <label className="form-label">Fecha Fin:</label>
+                    <input
+                      type="date"
+                      className="form-control"
+                      value={selectedDateRange.end}
+                      onChange={(e) => setSelectedDateRange({...selectedDateRange, end: e.target.value})}
+                    />
+                  </div>
+                )}
+                <div className={`col-md-${useSingleDate ? '8' : '4'} d-flex align-items-end`}>
                   <button 
                     className="btn btn-success me-2" 
                     onClick={generatePDFReport}
@@ -366,25 +416,25 @@ const Dashboard: React.FC = () => {
 
       {/* Tarjetas de métricas */}
       <div className="row mb-4">
-        <div className="col-md-3">
+        <div className="col-md-2">
           <div className="card bg-primary text-white">
             <div className="card-body">
               <div className="d-flex justify-content-between">
                 <div>
-                  <h6 className="card-title">Ingresos del Mes</h6>
-                  <h4>Q{data.monthlyIncome?.toLocaleString() || '0'}</h4>
+                  <h6 className="card-title" style={{fontSize: '0.9rem'}}>Ingresos del Mes</h6>
+                  <h4>Q{data.currentMonthIncome?.toLocaleString() || '0'}</h4>
                 </div>
-                <i className="bi bi-cash-stack fs-1"></i>
+                <i className="bi bi-calendar-month fs-1"></i>
               </div>
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+        <div className="col-md-2">
           <div className="card bg-success text-white">
             <div className="card-body">
               <div className="d-flex justify-content-between">
                 <div>
-                  <h6 className="card-title">Total Estudiantes</h6>
+                  <h6 className="card-title" style={{fontSize: '0.9rem'}}>Total Estudiantes</h6>
                   <h4>{data.studentsByType.reduce((sum, item) => sum + item.total, 0)}</h4>
                 </div>
                 <i className="bi bi-people fs-1"></i>
@@ -392,12 +442,14 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+        <div className="col-md-2">
           <div className="card bg-warning text-white">
             <div className="card-body">
               <div className="d-flex justify-content-between">
                 <div>
-                  <h6 className="card-title">Ingresos del Día</h6>
+                  <h6 className="card-title" style={{fontSize: '0.9rem'}}>
+                    {useSingleDate ? 'Ingresos del Día' : 'Ingresos del Día (Inicio)'}
+                  </h6>
                   <h4>Q{data.dailyIncome?.toLocaleString() || '0'}</h4>
                 </div>
                 <i className="bi bi-calendar-check fs-1"></i>
@@ -405,12 +457,27 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="col-md-3">
+        {!useSingleDate && (
+          <div className="col-md-2">
+            <div className="card bg-info text-white">
+              <div className="card-body">
+                <div className="d-flex justify-content-between">
+                  <div>
+                    <h6 className="card-title" style={{fontSize: '0.9rem'}}>Ingresos del Rango</h6>
+                    <h4>Q{data.rangeIncome?.toLocaleString() || '0'}</h4>
+                  </div>
+                  <i className="bi bi-calendar-range fs-1"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <div className={`col-md-${useSingleDate ? '4' : '2'}`}>
           <div className="card bg-danger text-white">
             <div className="card-body">
               <div className="d-flex justify-content-between">
                 <div>
-                  <h6 className="card-title">Total Mora</h6>
+                  <h6 className="card-title" style={{fontSize: '0.9rem'}}>Total Mora</h6>
                   <h4>Q{data.totalMora?.toLocaleString() || '0'}</h4>
                 </div>
                 <i className="bi bi-clock fs-1"></i>
