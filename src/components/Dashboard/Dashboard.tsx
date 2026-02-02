@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Chart as ChartJS,
   CategoryScale,
@@ -69,7 +69,7 @@ const Dashboard: React.FC = () => {
   
   const [useSingleDate, setUseSingleDate] = useState(false);
 
-  const fetchDashboardData = useCallback(async () => {
+  const fetchDashboardData = async () => {
     try {
       setLoading(true);
       console.log('Cargando datos con rango:', selectedDateRange); // Debug
@@ -82,7 +82,7 @@ const Dashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedDateRange]);
+  };
 
   useEffect(() => {
     // Solo cargar datos al montar el componente
