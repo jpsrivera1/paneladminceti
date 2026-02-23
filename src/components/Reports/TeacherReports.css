@@ -1,0 +1,57 @@
+.teacher-reports-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.teacher-reports-container .card {
+  border: none;
+  border-radius: 8px;
+}
+
+.teacher-reports-container .card-body {
+  padding: 1.5rem;
+}
+
+.teacher-reports-container h1,
+.teacher-reports-container h2 {
+  color: #1e3a8a;
+}
+
+.teacher-reports-container .text-primary {
+  color: #1e3a8a !important;
+}
+
+.teacher-reports-container .btn-primary {
+  background-color: #1e3a8a;
+  border-color: #1e3a8a;
+}
+
+.teacher-reports-container .btn-primary:hover {
+  background-color: #1e40af;
+  border-color: #1e40af;
+}
+
+.teacher-reports-container .alert-info {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.teacher-reports-container .progress {
+  height: 25px;
+}
+
+.teacher-reports-container .progress-bar {
+  background-color: #1e3a8a;
+}
+
+@media (max-width: 768px) {
+  .teacher-reports-container {
+    padding: 10px;
+  }
+  
+  .teacher-reports-container .card-body {
+    padding: 1rem;
+  }
+}

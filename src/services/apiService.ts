@@ -120,6 +120,17 @@ export const apiService = {
     const response = await axiosInstance.get('/uniformes/inventario-tallas');
     return response.data;
   },
+
+  // Teacher (Docentes) endpoints
+  getTeachers: async (params?: any) => {
+    const response = await axiosInstance.get('/docentes', { params });
+    return response.data;
+  },
+
+  getTeacherReport: async (id: string, params: { fecha_inicio: string; fecha_fin: string }) => {
+    const response = await axiosInstance.get(`/asistencias-docentes/docente/${id}`, { params });
+    return response.data;
+  },
 };
 
 export default apiService;

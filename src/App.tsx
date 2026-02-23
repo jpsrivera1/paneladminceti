@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Layout from './components/Layout/Layout';
 import Dashboard from './components/Dashboard/Dashboard';
 import UniformInventory from './components/UniformInventory/UniformInventory';
+import TeacherReports from './components/Reports/TeacherReports';
 import Login from './components/Login/Login';
 import { verificarSesion } from './services/apiService';
 import './App.css';
@@ -65,6 +66,7 @@ function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/inventario-uniformes" element={<UniformInventory />} />
+            <Route path="/reportes-docentes" element={<TeacherReports />} />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Layout>
