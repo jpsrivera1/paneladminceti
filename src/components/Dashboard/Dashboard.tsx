@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Chart as ChartJS,
   CategoryScale,
@@ -220,23 +220,21 @@ const Dashboard: React.FC = () => {
     ],
   };
 
-  const monthHistory = useMemo(() => {
-    return data.incomeByMonth
-      .slice(0, monthHistoryRange)
-      .reverse()
-      .map(item => {
-        const [year, month] = item.mes.split('-');
-        const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-        const monthIndex = parseInt(month, 10) - 1;
-        return {
-          monthKey: item.mes,
-          monthLabel: `${monthNames[monthIndex]} ${year}`,
-          total: Number(item.total_ingresos || 0)
-        };
-      });
-  }, [data.incomeByMonth, monthHistoryRange]);
+  const monthHistory = data.incomeByMonth
+    .slice(0, monthHistoryRange)
+    .reverse()
+    .map(item => {
+      const [year, month] = item.mes.split('-');
+      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const monthIndex = parseInt(month, 10) - 1;
+      return {
+        monthKey: item.mes,
+        monthLabel: `${monthNames[monthIndex]} ${year}`,
+        total: Number(item.total_ingresos || 0)
+      };
+    });
 
-  const monthlySummary = useMemo(() => {
+  const monthlySummary = (() => {
     if (monthHistory.length === 0) {
       return {
         bestMonth: null as null | { monthLabel: string; total: number },
@@ -252,7 +250,7 @@ const Dashboard: React.FC = () => {
     const current = monthHistory[monthHistory.length - 1]?.total || 0;
 
     return { bestMonth, average, total, current };
-  }, [monthHistory]);
+  })();
 
   const incomeHistoryChart = {
     labels: monthHistory.map(item => item.monthLabel),
@@ -324,17 +322,15 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const monthlyHistoryRows = useMemo(() => {
-    return [...monthHistory].reverse().map((item, index, arr) => {
-      const nextMonth = arr[index + 1];
-      const diff = nextMonth ? item.total - nextMonth.total : 0;
-      const trend = nextMonth ? (nextMonth.total === 0 ? 0 : (diff / nextMonth.total) * 100) : 0;
-      return {
-        ...item,
-        trend
-      };
-    });
-  }, [monthHistory]);
+  const monthlyHistoryRows = [...monthHistory].reverse().map((item, index, arr) => {
+    const nextMonth = arr[index + 1];
+    const diff = nextMonth ? item.total - nextMonth.total : 0;
+    const trend = nextMonth ? (nextMonth.total === 0 ? 0 : (diff / nextMonth.total) * 100) : 0;
+    return {
+      ...item,
+      trend
+    };
+  });
 
   const studentsByTypeChart = {
     labels: data.studentsByType.map(item => item.tipo_estudiante),
