@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Chart as ChartJS,
+  LineController,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -19,6 +20,7 @@ import './Dashboard.css';
 
 // Registrar componentes de Chart.js
 ChartJS.register(
+  LineController,
   CategoryScale,
   LinearScale,
   BarElement,
