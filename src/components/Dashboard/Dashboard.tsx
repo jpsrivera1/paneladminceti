@@ -12,7 +12,7 @@ import {
   PointElement,
   LineElement,
 } from 'chart.js';
-import { Bar, Pie, Chart } from 'react-chartjs-2';
+import { Bar, Doughnut, Chart } from 'react-chartjs-2';
 import { apiService } from '../../services/apiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -352,16 +352,50 @@ const Dashboard: React.FC = () => {
 
   const monthlyHistoryRows = [...monthHistory].reverse();
 
+  const studentsByTypeRows = data.studentsByType.filter(item => Number(item.total || 0) > 0);
+  const totalStudentsByType = studentsByTypeRows.reduce((sum, item) => sum + item.total, 0);
+
   const studentsByTypeChart = {
-    labels: data.studentsByType.map(item => item.tipo_estudiante),
+    labels: studentsByTypeRows.map(item => item.tipo_estudiante),
     datasets: [
       {
         label: 'Estudiantes por Tipo',
-        data: data.studentsByType.map(item => item.total),
-        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0'],
-        borderWidth: 1,
+        data: studentsByTypeRows.map(item => item.total),
+        backgroundColor: ['#f25f86', '#3fa7e0', '#7bc950', '#f5c451', '#9b8cff', '#ff8c61'],
+        borderColor: '#ffffff',
+        borderWidth: 2,
+        hoverOffset: 8
       },
     ],
+  };
+
+  const studentsByTypeOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '62%',
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'circle' as const,
+          boxWidth: 10,
+          padding: 14,
+          font: {
+            size: 11
+          }
+        }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const value = Number(context.parsed || 0);
+            const percent = totalStudentsByType > 0 ? (value / totalStudentsByType) * 100 : 0;
+            return `${context.label}: ${value.toLocaleString('es-GT')} (${percent.toFixed(1)}%)`;
+          }
+        }
+      }
+    }
   };
 
   const paymentMethodChart = {
@@ -699,7 +733,22 @@ const Dashboard: React.FC = () => {
               <h5 className="mb-0">Estudiantes por Tipo</h5>
             </div>
             <div className="card-body">
-              <Pie data={studentsByTypeChart} options={chartOptions} />
+              <div className="students-chart-container">
+                <Doughnut data={studentsByTypeChart} options={studentsByTypeOptions} />
+              </div>
+              <div className="students-breakdown mt-3">
+                {studentsByTypeRows.map((row) => {
+                  const percent = totalStudentsByType > 0 ? (row.total / totalStudentsByType) * 100 : 0;
+                  return (
+                    <div className="students-breakdown-row" key={row.tipo_estudiante}>
+                      <span className="students-breakdown-label">{row.tipo_estudiante}</span>
+                      <span className="students-breakdown-value">
+                        {row.total.toLocaleString('es-GT')} ({percent.toFixed(1)}%)
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
