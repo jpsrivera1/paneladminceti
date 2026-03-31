@@ -55,3 +55,64 @@
   width: 3rem;
   height: 3rem;
 }
+
+.history-card .card-body {
+  padding-bottom: 0.75rem;
+}
+
+.history-range-select {
+  width: auto;
+  min-width: 165px;
+}
+
+.history-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.history-summary-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.65rem;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.history-summary-card .summary-label {
+  color: #64748b;
+  font-size: 0.78rem;
+}
+
+.history-summary-card strong {
+  color: #0f172a;
+  font-size: 1rem;
+}
+
+.history-summary-card .summary-value {
+  color: #1d4ed8;
+  font-size: 0.86rem;
+}
+
+.history-chart-container {
+  position: relative;
+  height: 270px;
+}
+
+@media (max-width: 992px) {
+  .history-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 576px) {
+  .history-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .history-chart-container {
+    height: 240px;
+  }
+}

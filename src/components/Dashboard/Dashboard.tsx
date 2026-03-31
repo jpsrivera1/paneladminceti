@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Chart as ChartJS,
   CategoryScale,
@@ -11,7 +11,7 @@ import {
   PointElement,
   LineElement,
 } from 'chart.js';
-import { Bar, Pie, Line } from 'react-chartjs-2';
+import { Bar, Pie, Chart } from 'react-chartjs-2';
 import { apiService } from '../../services/apiService';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -68,6 +68,7 @@ const Dashboard: React.FC = () => {
   });
   
   const [useSingleDate, setUseSingleDate] = useState(false);
+  const [monthHistoryRange, setMonthHistoryRange] = useState<number>(12);
 
   const fetchDashboardData = async () => {
     try {
@@ -219,23 +220,121 @@ const Dashboard: React.FC = () => {
     ],
   };
 
-  const incomeByMonthChart = {
-    labels: data.incomeByMonth.slice(0, 12).reverse().map(item => {
-      const [year, month] = item.mes.split('-');
-      const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 
-                         'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-      return `${monthNames[parseInt(month) - 1]} ${year}`;
-    }),
+  const monthHistory = useMemo(() => {
+    return data.incomeByMonth
+      .slice(0, monthHistoryRange)
+      .reverse()
+      .map(item => {
+        const [year, month] = item.mes.split('-');
+        const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        const monthIndex = parseInt(month, 10) - 1;
+        return {
+          monthKey: item.mes,
+          monthLabel: `${monthNames[monthIndex]} ${year}`,
+          total: Number(item.total_ingresos || 0)
+        };
+      });
+  }, [data.incomeByMonth, monthHistoryRange]);
+
+  const monthlySummary = useMemo(() => {
+    if (monthHistory.length === 0) {
+      return {
+        bestMonth: null as null | { monthLabel: string; total: number },
+        average: 0,
+        total: 0,
+        current: 0
+      };
+    }
+
+    const total = monthHistory.reduce((acc, item) => acc + item.total, 0);
+    const average = total / monthHistory.length;
+    const bestMonth = monthHistory.reduce((prev, curr) => (curr.total > prev.total ? curr : prev), monthHistory[0]);
+    const current = monthHistory[monthHistory.length - 1]?.total || 0;
+
+    return { bestMonth, average, total, current };
+  }, [monthHistory]);
+
+  const incomeHistoryChart = {
+    labels: monthHistory.map(item => item.monthLabel),
     datasets: [
       {
-        label: 'Ingresos Mensuales',
-        data: data.incomeByMonth.slice(0, 12).reverse().map(item => item.total_ingresos),
-        borderColor: '#36A2EB',
-        backgroundColor: 'rgba(54, 162, 235, 0.2)',
-        tension: 0.4,
+        type: 'bar' as const,
+        label: 'Ingresos',
+        data: monthHistory.map(item => item.total),
+        backgroundColor: 'rgba(59, 130, 246, 0.85)',
+        borderColor: 'rgba(37, 99, 235, 1)',
+        borderWidth: 1,
+        borderRadius: 6,
+        yAxisID: 'y'
       },
-    ],
+      {
+        type: 'line' as const,
+        label: 'Tendencia',
+        data: monthHistory.map(item => item.total),
+        borderColor: '#10b981',
+        backgroundColor: '#10b981',
+        borderWidth: 2,
+        tension: 0.35,
+        pointRadius: 4,
+        pointHoverRadius: 5,
+        pointBackgroundColor: '#ffffff',
+        pointBorderColor: '#10b981',
+        pointBorderWidth: 2,
+        yAxisID: 'y'
+      }
+    ]
   };
+
+  const incomeHistoryChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index' as const,
+      intersect: false
+    },
+    plugins: {
+      legend: {
+        position: 'bottom' as const,
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context: any) {
+            const label = context.dataset.label || '';
+            const value = context.parsed.y || 0;
+            return `${label}: Q ${value.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value: any) {
+            const n = Number(value || 0);
+            return `Q${Math.round(n / 1000)}k`;
+          }
+        }
+      },
+      x: {
+        grid: {
+          display: false
+        }
+      }
+    }
+  };
+
+  const monthlyHistoryRows = useMemo(() => {
+    return [...monthHistory].reverse().map((item, index, arr) => {
+      const nextMonth = arr[index + 1];
+      const diff = nextMonth ? item.total - nextMonth.total : 0;
+      const trend = nextMonth ? (nextMonth.total === 0 ? 0 : (diff / nextMonth.total) * 100) : 0;
+      return {
+        ...item,
+        trend
+      };
+    });
+  }, [monthHistory]);
 
   const studentsByTypeChart = {
     labels: data.studentsByType.map(item => item.tipo_estudiante),
@@ -492,12 +591,85 @@ const Dashboard: React.FC = () => {
       {/* Gráficos */}
       <div className="row mb-4">
         <div className="col-md-8">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="mb-0">Ingresos por Mes</h5>
+          <div className="card history-card">
+            <div className="card-header d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">
+                <i className="bi bi-calendar3 me-2 text-primary"></i>
+                Historial de Ingresos por Mes
+              </h5>
+              <div className="d-flex align-items-center gap-2">
+                <label className="text-muted small mb-0">Mostrar:</label>
+                <select
+                  className="form-select form-select-sm history-range-select"
+                  value={monthHistoryRange}
+                  onChange={(e) => setMonthHistoryRange(Number(e.target.value))}
+                >
+                  <option value={3}>Últimos 3 meses</option>
+                  <option value={6}>Últimos 6 meses</option>
+                  <option value={12}>Últimos 12 meses</option>
+                </select>
+              </div>
             </div>
             <div className="card-body">
-              <Line data={incomeByMonthChart} options={chartOptions} />
+              <div className="history-summary-grid mb-4">
+                <div className="history-summary-card">
+                  <span className="summary-label">Mejor mes</span>
+                  <strong>{monthlySummary.bestMonth?.monthLabel || 'N/A'}</strong>
+                  <span className="summary-value">
+                    Q {monthlySummary.bestMonth?.total?.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
+                  </span>
+                </div>
+                <div className="history-summary-card">
+                  <span className="summary-label">Promedio mensual</span>
+                  <strong>
+                    Q {monthlySummary.average.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </strong>
+                  <span className="summary-value">{monthHistory.length} meses</span>
+                </div>
+                <div className="history-summary-card">
+                  <span className="summary-label">Total acumulado</span>
+                  <strong>
+                    Q {monthlySummary.total.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </strong>
+                  <span className="summary-value">Período mostrado</span>
+                </div>
+                <div className="history-summary-card">
+                  <span className="summary-label">Mes actual</span>
+                  <strong>
+                    Q {monthlySummary.current.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </strong>
+                  <span className="summary-value">Último mes listado</span>
+                </div>
+              </div>
+
+              <div className="history-chart-container">
+                <Chart type="bar" data={incomeHistoryChart} options={incomeHistoryChartOptions} />
+              </div>
+
+              <div className="table-responsive mt-4">
+                <table className="table table-sm align-middle">
+                  <thead>
+                    <tr>
+                      <th>Mes</th>
+                      <th className="text-end">Total</th>
+                      <th className="text-end">Tendencia</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {monthlyHistoryRows.map((row) => (
+                      <tr key={row.monthKey}>
+                        <td className="fw-semibold">{row.monthLabel}</td>
+                        <td className="text-end fw-bold text-primary">
+                          Q {row.total.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td className={`text-end fw-semibold ${row.trend >= 0 ? 'text-success' : 'text-danger'}`}>
+                          {row.trend >= 0 ? '+' : ''}{row.trend.toFixed(1)}%
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
