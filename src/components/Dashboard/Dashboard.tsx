@@ -38,8 +38,7 @@ interface DashboardData {
     mes: string,
     total_ingresos: number,
     efectivo_ingresos?: number,
-    transferencia_ingresos?: number,
-    total_ventas?: number
+    transferencia_ingresos?: number
   }>;
   incomeByType: Array<{tipo_pago: string, total_ingresos: number}>;
   studentsByType: Array<{tipo_estudiante: string, total: number}>;
@@ -240,8 +239,7 @@ const Dashboard: React.FC = () => {
         monthLabel: `${monthNames[monthIndex]} ${year}`,
         total: Number(item.total_ingresos || 0),
         efectivo: Number(item.efectivo_ingresos || 0),
-        transferencia: Number(item.transferencia_ingresos || 0),
-        ventas: Number(item.total_ventas || 0)
+        transferencia: Number(item.transferencia_ingresos || 0)
       };
     });
 
@@ -268,7 +266,7 @@ const Dashboard: React.FC = () => {
     datasets: [
       {
         type: 'bar' as const,
-        label: 'Contado',
+        label: 'Efectivo',
         data: monthHistory.map(item => item.efectivo),
         backgroundColor: 'rgba(59, 130, 246, 0.85)',
         borderColor: 'rgba(37, 99, 235, 1)',
@@ -279,7 +277,7 @@ const Dashboard: React.FC = () => {
       },
       {
         type: 'bar' as const,
-        label: 'Crédito',
+        label: 'Transferencia',
         data: monthHistory.map(item => item.transferencia),
         backgroundColor: 'rgba(245, 158, 11, 0.9)',
         borderColor: '#d97706',
@@ -287,21 +285,6 @@ const Dashboard: React.FC = () => {
         borderRadius: 6,
         stack: 'ingresos',
         yAxisID: 'y'
-      },
-      {
-        type: 'line' as const,
-        label: 'N° Ventas',
-        data: monthHistory.map(item => item.ventas),
-        borderColor: '#10b981',
-        backgroundColor: '#10b981',
-        borderWidth: 2,
-        tension: 0.35,
-        pointRadius: 4,
-        pointHoverRadius: 5,
-        pointBackgroundColor: '#ffffff',
-        pointBorderColor: '#10b981',
-        pointBorderWidth: 2,
-        yAxisID: 'y1'
       }
     ]
   };
@@ -322,9 +305,6 @@ const Dashboard: React.FC = () => {
           label: function(context: any) {
             const label = context.dataset.label || '';
             const value = context.parsed.y || 0;
-            if (label === 'N° Ventas') {
-              return `${label}: ${value.toLocaleString('es-GT')} ventas`;
-            }
             return `${label}: Q ${value.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
           }
         }
@@ -338,18 +318,6 @@ const Dashboard: React.FC = () => {
           callback: function(value: any) {
             const n = Number(value || 0);
             return `Q${Math.round(n / 1000)}k`;
-          }
-        }
-      },
-      y1: {
-        beginAtZero: true,
-        position: 'right' as const,
-        grid: {
-          drawOnChartArea: false
-        },
-        ticks: {
-          callback: function(value: any) {
-            return Number(value || 0).toLocaleString('es-GT');
           }
         }
       },
@@ -680,9 +648,8 @@ const Dashboard: React.FC = () => {
                     <tr>
                       <th>Mes</th>
                       <th className="text-end">Total</th>
-                      <th className="text-end">Contado</th>
-                      <th className="text-end">Crédito</th>
-                      <th className="text-end">N° Ventas</th>
+                      <th className="text-end">Efectivo</th>
+                      <th className="text-end">Transferencia</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -697,9 +664,6 @@ const Dashboard: React.FC = () => {
                         </td>
                         <td className="text-end fw-semibold text-success">
                           Q {row.transferencia.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </td>
-                        <td className="text-end fw-semibold text-dark">
-                          {row.ventas.toLocaleString('es-GT')}
                         </td>
                       </tr>
                     ))}
