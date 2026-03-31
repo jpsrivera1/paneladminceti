@@ -34,7 +34,12 @@ ChartJS.register(
 
 interface DashboardData {
   incomeByDay: Array<{dia: string, total_ingresos: number}>;
-  incomeByMonth: Array<{mes: string, total_ingresos: number}>;
+  incomeByMonth: Array<{
+    mes: string,
+    total_ingresos: number,
+    efectivo_ingresos?: number,
+    transferencia_ingresos?: number
+  }>;
   incomeByType: Array<{tipo_pago: string, total_ingresos: number}>;
   studentsByType: Array<{tipo_estudiante: string, total: number}>;
   pendingPayments: Array<{estudiante: string, tipo_pago: string, monto_pendiente: number}>;
@@ -232,7 +237,9 @@ const Dashboard: React.FC = () => {
       return {
         monthKey: item.mes,
         monthLabel: `${monthNames[monthIndex]} ${year}`,
-        total: Number(item.total_ingresos || 0)
+        total: Number(item.total_ingresos || 0),
+        efectivo: Number(item.efectivo_ingresos || 0),
+        transferencia: Number(item.transferencia_ingresos || 0)
       };
     });
 
@@ -259,8 +266,8 @@ const Dashboard: React.FC = () => {
     datasets: [
       {
         type: 'bar' as const,
-        label: 'Ingresos',
-        data: monthHistory.map(item => item.total),
+        label: 'Efectivo',
+        data: monthHistory.map(item => item.efectivo),
         backgroundColor: 'rgba(59, 130, 246, 0.85)',
         borderColor: 'rgba(37, 99, 235, 1)',
         borderWidth: 1,
@@ -268,18 +275,13 @@ const Dashboard: React.FC = () => {
         yAxisID: 'y'
       },
       {
-        type: 'line' as const,
-        label: 'Tendencia',
-        data: monthHistory.map(item => item.total),
-        borderColor: '#10b981',
-        backgroundColor: '#10b981',
-        borderWidth: 2,
-        tension: 0.35,
-        pointRadius: 4,
-        pointHoverRadius: 5,
-        pointBackgroundColor: '#ffffff',
-        pointBorderColor: '#10b981',
-        pointBorderWidth: 2,
+        type: 'bar' as const,
+        label: 'Transferencia',
+        data: monthHistory.map(item => item.transferencia),
+        backgroundColor: 'rgba(16, 185, 129, 0.85)',
+        borderColor: '#059669',
+        borderWidth: 1,
+        borderRadius: 6,
         yAxisID: 'y'
       }
     ]
@@ -324,15 +326,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const monthlyHistoryRows = [...monthHistory].reverse().map((item, index, arr) => {
-    const nextMonth = arr[index + 1];
-    const diff = nextMonth ? item.total - nextMonth.total : 0;
-    const trend = nextMonth ? (nextMonth.total === 0 ? 0 : (diff / nextMonth.total) * 100) : 0;
-    return {
-      ...item,
-      trend
-    };
-  });
+  const monthlyHistoryRows = [...monthHistory].reverse();
 
   const studentsByTypeChart = {
     labels: data.studentsByType.map(item => item.tipo_estudiante),
@@ -650,7 +644,8 @@ const Dashboard: React.FC = () => {
                     <tr>
                       <th>Mes</th>
                       <th className="text-end">Total</th>
-                      <th className="text-end">Tendencia</th>
+                      <th className="text-end">Efectivo</th>
+                      <th className="text-end">Transferencia</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -660,8 +655,11 @@ const Dashboard: React.FC = () => {
                         <td className="text-end fw-bold text-primary">
                           Q {row.total.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
-                        <td className={`text-end fw-semibold ${row.trend >= 0 ? 'text-success' : 'text-danger'}`}>
-                          {row.trend >= 0 ? '+' : ''}{row.trend.toFixed(1)}%
+                        <td className="text-end fw-semibold text-primary">
+                          Q {row.efectivo.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </td>
+                        <td className="text-end fw-semibold text-success">
+                          Q {row.transferencia.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                       </tr>
                     ))}
