@@ -261,6 +261,11 @@ const Dashboard: React.FC = () => {
     return { bestMonth, average, total, current };
   })();
 
+  const efectivoFillColor = 'rgba(168, 224, 99, 0.88)';
+  const efectivoBorderColor = '#7CB342';
+  const transferenciaFillColor = 'rgba(86, 204, 242, 0.88)';
+  const transferenciaBorderColor = '#2196F3';
+
   const incomeHistoryChart = {
     labels: monthHistory.map(item => item.monthLabel),
     datasets: [
@@ -268,10 +273,13 @@ const Dashboard: React.FC = () => {
         type: 'bar' as const,
         label: 'Efectivo',
         data: monthHistory.map(item => item.efectivo),
-        backgroundColor: 'rgba(59, 130, 246, 0.85)',
-        borderColor: 'rgba(37, 99, 235, 1)',
+        backgroundColor: efectivoFillColor,
+        borderColor: efectivoBorderColor,
         borderWidth: 1,
         borderRadius: 6,
+        barPercentage: 0.74,
+        categoryPercentage: 0.68,
+        maxBarThickness: 64,
         stack: 'ingresos',
         yAxisID: 'y'
       },
@@ -279,10 +287,13 @@ const Dashboard: React.FC = () => {
         type: 'bar' as const,
         label: 'Transferencia',
         data: monthHistory.map(item => item.transferencia),
-        backgroundColor: 'rgba(245, 158, 11, 0.9)',
-        borderColor: '#d97706',
+        backgroundColor: transferenciaFillColor,
+        borderColor: transferenciaBorderColor,
         borderWidth: 1,
         borderRadius: 6,
+        barPercentage: 0.74,
+        categoryPercentage: 0.68,
+        maxBarThickness: 64,
         stack: 'ingresos',
         yAxisID: 'y'
       }
@@ -299,6 +310,11 @@ const Dashboard: React.FC = () => {
     plugins: {
       legend: {
         position: 'bottom' as const,
+        labels: {
+          boxWidth: 18,
+          boxHeight: 10,
+          usePointStyle: false
+        }
       },
       tooltip: {
         callbacks: {
@@ -306,6 +322,10 @@ const Dashboard: React.FC = () => {
             const label = context.dataset.label || '';
             const value = context.parsed.y || 0;
             return `${label}: Q ${value.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          },
+          footer: function(items: any[]) {
+            const total = items.reduce((acc, item) => acc + (item.parsed.y || 0), 0);
+            return `Total mes: Q ${total.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
           }
         }
       }
@@ -659,10 +679,10 @@ const Dashboard: React.FC = () => {
                         <td className="text-end fw-bold text-primary">
                           Q {row.total.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
-                        <td className="text-end fw-semibold text-primary">
+                        <td className="text-end fw-semibold text-success">
                           Q {row.efectivo.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
-                        <td className="text-end fw-semibold text-success">
+                        <td className="text-end fw-semibold text-info">
                           Q {row.transferencia.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </td>
                       </tr>
